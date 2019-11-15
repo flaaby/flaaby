@@ -1,0 +1,12 @@
+name: flaaby
+version: "0.1.0"
+about: Meet your basic image needs
+author: bharath appali <bharath.appali@gmail.com>
+
+args:
+  - file:
+      help: File path of image to transform
+      short: f
+      long: file
+      multiple: true
+      takes_value: true
