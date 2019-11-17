@@ -3,10 +3,59 @@ version: "0.1.0"
 about: Meet your basic image needs
 author: bharath appali <bharath.appali@gmail.com>
 
-args:
-  - file:
-      help: File path of image to transform
-      short: f
-      long: file
-      multiple: true
-      takes_value: true
+subcommands:
+  - resize:
+      about: To resize an image
+      author: bharathappali <bharath.appali@gmail.com>
+      args:
+        - file:
+            help: File path of image to transform
+            short: f
+            long: file
+            multiple: false
+            takes_value: true
+            required: true
+        - output:
+            help: Output path for transformed image
+            short: o
+            long: output
+            multiple: false
+            takes_value: true
+        - width:
+            help: width to resize
+            short: W
+            long: width
+            multiple: false
+            takes_value: true
+        - height:
+            help: height to resize
+            short: H
+            long: height
+            multiple: false
+            takes_value: true
+        - keep-aspect-ratio:
+            help: >-
+                  Gets the best fit keeping aspect ratio of your image
+                  [cannot be clubbed with `fixed-width` & `fixed-height`]
+            long: keep-aspect-ratio
+            multiple: false
+            takes_value: false
+        - fixed-width:
+            help: >-
+                  Gets the best fit keeping constant width
+                  [cannot be clubbed with `keep-aspect-ratio` & `fixed-height`]
+            long: fixed-width
+            multiple: false
+            takes_value: false
+        - fixed-height:
+            help: >-
+                  Gets the best fit keeping constant width
+                  [cannot be clubbed with `keep-aspect-ratio` & `fixed-width`]
+            long: fixed-height
+            multiple: false
+            takes_value: false
+        - save-here:
+            help: Saves the output to current working directory
+            long: save-here
+            multiple: false
+            takes_value: false
