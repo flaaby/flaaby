@@ -137,7 +137,7 @@ fn generate_flaaby_output_filename (input_file: &str, save_here: bool) -> String
     } else {
         filename = format!("{}{}{}{}{}{}",
                            dir.to_str().unwrap(),
-                           "/",
+                           MAIN_SEPARATOR,
                            &input_file[(seperator_offset + 1)..dot_seperator_offset],
                            "_flaaby_resized_",
                            generate_random_string(5),
