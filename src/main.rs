@@ -1,6 +1,5 @@
 #[macro_use]
 extern crate clap;
-extern crate rand;
 
 use clap::{App, SubCommand};
 

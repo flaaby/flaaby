@@ -59,3 +59,9 @@ subcommands:
             long: save-here
             multiple: false
             takes_value: false
+        - modernize:
+            help: Blurry preview background for the given size, Should be used with keep-aspect-ratio | fixed-width | fixed-height. Ignored if not paired with any of them
+            short: M
+            long: modernize
+            multiple: false
+            takes_value: false

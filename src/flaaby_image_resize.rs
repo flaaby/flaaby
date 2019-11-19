@@ -1,6 +1,7 @@
 extern crate raster;
+extern crate rand;
 
-use raster::{editor, ResizeMode, Image, BlendMode, PositionMode, Color};
+use raster::{editor, filter, ResizeMode, Image, BlendMode, PositionMode, Color};
 use clap::{ArgMatches};
 use std::path::{PathBuf, Path, MAIN_SEPARATOR};
 use rand::Rng;
@@ -9,6 +10,7 @@ use colored::Colorize;
 use std::process::exit;
 use std::env;
 use crate::{constants, errors};
+use self::raster::BlurMode;
 
 #[derive(Debug)]                    // Added for printing purpose will remove after completion of version 0.1.0
 pub struct resize_struct {
@@ -20,6 +22,7 @@ pub struct resize_struct {
     width_const: bool,              // Holds the check to keep width constant
     height_const: bool,             // Holds the check to keep height constant
     save_here: bool,                // Holds the check to save output in current working directory
+    modernize: bool                 // Holds the check to make output modernized (Blurry preview background)
 }
 
 impl resize_struct {
@@ -64,6 +67,11 @@ impl resize_struct {
         self.save_here = save_here;
     }
 
+    // Setter for modernize [Image Modernize]
+    fn set_modernize(&mut self, modernize: bool) {
+        self.modernize = modernize;
+    }
+
     // Getter for input file [Image]
     fn get_input_file (&self) -> &str {
         &self.input_file
@@ -104,6 +112,10 @@ impl resize_struct {
         self.save_here
     }
 
+    // Getter for modernize [Image Modernize]
+    fn get_modernize (&self) -> bool {
+        self.modernize
+    }
 }
 
 
@@ -154,7 +166,8 @@ pub fn start_resize_module (resize_config: &ArgMatches) {
         keep_aspect_ratio: false,
         width_const: false,
         height_const: false,
-        save_here: false
+        save_here: false,
+        modernize: false
     };
 
     // Match `file` option
@@ -297,6 +310,12 @@ pub fn start_resize_module (resize_config: &ArgMatches) {
         resizer.set_height_const(true);
     }
 
+    if resize_config.occurrences_of(constants::CLI_RESIZE_OPTION_MODERNIZE) > 0 {
+        if resizer.get_keep_aspect_ratio() || resizer.get_height_const() || resizer.get_width_const() {
+            resizer.set_modernize(true);
+        }
+    }
+
     resize(resizer);
 }
 
@@ -305,16 +324,49 @@ pub fn resize (resizer: resize_struct) -> i32 {
     let result: i32 = 0;
     let mut file_to_resize = raster::open(resizer.get_input_file()).unwrap();
     if resizer.get_width_const() {
-        editor::resize(&mut file_to_resize, resizer.get_width(), resizer.get_height(),ResizeMode::ExactWidth).unwrap();
+        if resizer.get_modernize() {
+            modernize(ResizeMode::ExactWidth, &mut file_to_resize, &resizer);
+        } else {
+            editor::resize(&mut file_to_resize, resizer.get_width(), resizer.get_height(),ResizeMode::ExactWidth).unwrap();
+        }
     } else if resizer.get_height_const() {
-        editor::resize(&mut file_to_resize, resizer.get_width(), resizer.get_height(),ResizeMode::ExactHeight).unwrap();
+        if resizer.get_modernize() {
+            modernize(ResizeMode::ExactHeight, &mut file_to_resize, &resizer);
+        } else {
+            editor::resize(&mut file_to_resize, resizer.get_width(), resizer.get_height(),ResizeMode::ExactHeight).unwrap();
+        }
     } else if resizer.get_keep_aspect_ratio() {
-        let mut background_pane = Image::blank(resizer.get_width(), resizer.get_height());
-        editor::fill(&mut background_pane, Color::hex("#FFFFFF00").unwrap()).unwrap();
-        let file_to_resize = editor::blend(&background_pane, &file_to_resize, BlendMode::Normal, 1.0, PositionMode::Center, 0, 0);
+        if resizer.get_modernize() {
+            modernize(ResizeMode::Fit, &mut file_to_resize, &resizer);
+        } else {
+            editor::resize(&mut file_to_resize, resizer.get_width(), resizer.get_height(), ResizeMode::Fit).unwrap();
+            let mut background_pane = Image::blank(resizer.get_width(), resizer.get_height());
+            editor::fill(&mut background_pane, Color::hex("#FFFFFF00").unwrap()).unwrap();
+            let file_to_resize = editor::blend(&background_pane, &file_to_resize, BlendMode::Normal, 1.0, PositionMode::Center, 0, 0);
+        }
     } else {
         editor::resize(&mut file_to_resize, resizer.get_width(), resizer.get_height(),ResizeMode::Exact).unwrap();
     }
-    raster::save(&file_to_resize, resizer.get_output_file()).unwrap();
+    if !resizer.get_modernize() {
+        raster::save(&file_to_resize, resizer.get_output_file()).unwrap();
+    }
+    result
+}
+
+fn modernize(mode: ResizeMode, mut base_image: &mut Image, resizer: &resize_struct) -> i32 {
+    let result: i32 = 0;
+    let mut editable_image = raster::open(resizer.get_input_file()).unwrap();
+    editor::resize(&mut editable_image, 25,25, ResizeMode::Fit).unwrap();
+    filter::blur(&mut editable_image, BlurMode::Box).unwrap();
+    editor::resize(&mut editable_image, resizer.get_width(), resizer.get_height(), ResizeMode::Exact).unwrap();
+    editor::resize( &mut base_image, resizer.get_width(), resizer.get_height(), mode).unwrap();
+    let modernized_image = editor::blend(&editable_image,
+                                         base_image,
+                                         BlendMode::Normal,
+                                         1.0,
+                                         PositionMode::Center,
+                                         0,
+                                         0).unwrap();
+    raster::save(&modernized_image, resizer.get_output_file()).unwrap();
     result
 }
