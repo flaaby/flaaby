@@ -11,6 +11,9 @@ clap = { version="2.33.0", features=["yaml"] }
 raster = "0.2.0"
 colored = "1.9.0"
 rand = "0.7.2"
+num-traits = "0.2"
+num-derive = "0.3"
+percentage = "0.1"
 
 [profile.release]
 opt-level = 3

@@ -4,19 +4,46 @@ about: Meet your basic image needs
 author: bharath appali <bharath.appali@gmail.com>
 
 subcommands:
-  - resize:
-      about: To resize an image
+  - preview:
+      about: To generate blurry preview of image (Used as loading images)
       author: bharathappali <bharath.appali@gmail.com>
       args:
+        - quality-level:
+            help: Choose a quality level on a scale of 1-5 (3 default) (1 - lower .. 5 - higher)
+            long: quality-level
+            multiple: false
+            takes_value: true
         - file:
-            help: File path of image to transform
+            help: File path of image to preview
             short: f
             long: file
             multiple: false
             takes_value: true
             required: true
         - output:
-            help: Output path for transformed image
+            help: Output path for preview image
+            short: o
+            long: output
+            multiple: false
+            takes_value: true
+        - save-here:
+            help: Saves the output to current working directory
+            long: save-here
+            multiple: false
+            takes_value: false
+  - resize:
+      about: To resize an image
+      author: bharathappali <bharath.appali@gmail.com>
+      args:
+        - file:
+            help: File path of image to resize
+            short: f
+            long: file
+            multiple: false
+            takes_value: true
+            required: true
+        - output:
+            help: Output path for resized image
             short: o
             long: output
             multiple: false

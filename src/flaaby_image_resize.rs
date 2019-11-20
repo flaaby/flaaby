@@ -1,7 +1,7 @@
 extern crate raster;
 extern crate rand;
 
-use raster::{editor, filter, ResizeMode, Image, BlendMode, PositionMode, Color};
+use raster::{editor, filter, ResizeMode, Image, BlendMode, PositionMode, Color, BlurMode};
 use clap::{ArgMatches};
 use std::path::{PathBuf, Path, MAIN_SEPARATOR};
 use rand::Rng;
@@ -10,19 +10,18 @@ use colored::Colorize;
 use std::process::exit;
 use std::env;
 use crate::{constants, errors};
-use self::raster::BlurMode;
 
-#[derive(Debug)]                    // Added for printing purpose will remove after completion of version 0.1.0
-pub struct resize_struct {
-    input_file: String,             // Holds the value of the input file [Image] to resize
-    output_file: String,            // Holds the value of the output file [Image] which is resized
-    width: i32,                     // Holds the desired width for resizing
-    height: i32,                    // Holds the desired height for resizing
-    keep_aspect_ratio: bool,        // Holds the check to keep aspect ratio
-    width_const: bool,              // Holds the check to keep width constant
-    height_const: bool,             // Holds the check to keep height constant
-    save_here: bool,                // Holds the check to save output in current working directory
-    modernize: bool                 // Holds the check to make output modernized (Blurry preview background)
+#[derive(Debug)]                                  // Added for printing purpose will remove after completion of version 0.1.0
+struct resize_struct {
+    input_file              : String,             // Holds the value of the input file [Image] to resize
+    output_file             : String,             // Holds the value of the output file [Image] which is resized
+    width                   : i32,                // Holds the desired width for resizing
+    height                  : i32,                // Holds the desired height for resizing
+    keep_aspect_ratio       : bool,               // Holds the check to keep aspect ratio
+    width_const             : bool,               // Holds the check to keep width constant
+    height_const            : bool,               // Holds the check to keep height constant
+    save_here               : bool,               // Holds the check to save output in current working directory
+    modernize               : bool                // Holds the check to make output modernized (Blurry preview background)
 }
 
 impl resize_struct {
@@ -128,7 +127,7 @@ fn generate_random_string(count: usize) -> String {
 }
 
 // Function to generate the output file covering all cases. user provides | user doesn't provide
-fn generate_flaaby_output_filename (input_file: &str, save_here: bool) -> String {
+pub fn generate_flaaby_output_filename (input_file: &str, save_here: bool) -> String {
     let dir = env::current_dir().unwrap();
     let seperator_offset = input_file.rfind(MAIN_SEPARATOR).unwrap();
     let mut filename: String = "".to_string();
@@ -137,7 +136,7 @@ fn generate_flaaby_output_filename (input_file: &str, save_here: bool) -> String
     if seperator_offset > 0 && !save_here{
         filename = format!("{}{}{}{}",
                            &input_file[0..dot_seperator_offset],
-                           "_flaaby_resized_",
+                           "_flaaby_edited_",
                            generate_random_string(5),
                            &input_file[dot_seperator_offset..str_len]
         );
@@ -146,7 +145,7 @@ fn generate_flaaby_output_filename (input_file: &str, save_here: bool) -> String
                            dir.to_str().unwrap(),
                            MAIN_SEPARATOR,
                            &input_file[(seperator_offset + 1)..dot_seperator_offset],
-                           "_flaaby_resized_",
+                           "_flaaby_edited_",
                            generate_random_string(5),
                            &input_file[dot_seperator_offset..str_len]
         );
@@ -320,7 +319,7 @@ pub fn start_resize_module (resize_config: &ArgMatches) {
 }
 
 // Function to resize
-pub fn resize (resizer: resize_struct) -> i32 {
+fn resize (resizer: resize_struct) -> i32 {
     let result: i32 = 0;
     let mut file_to_resize = raster::open(resizer.get_input_file()).unwrap();
     if resizer.get_width_const() {
